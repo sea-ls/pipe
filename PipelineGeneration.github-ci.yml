@@ -1,0 +1,26 @@
+generate-pipeline:
+  stage: generate-pipeline
+  image: ${DOCKER_REPO_URL}ucso-docker/docker20
+  script:
+    - jsonnet -S --ext-str branch="${CI_COMMIT_BRANCH}" --ext-str need_bkp="${NEED_BKP}" gitlab-ci.jsonnet > generated-config.yml
+  artifacts:
+    paths:
+      - generated-config.yml
+    expire_in: 1d
+
+process-pipeline:
+  stage: process-pipeline
+  variables:
+    SERVICES: $CHANGED_SERVICES
+    NEED_BKP: ${NEED_BKP}
+  needs:
+    - generate-pipeline
+  trigger:
+    include:
+      - artifact: generated-config.yml
+        job: generate-pipeline
+    strategy: depend
+
+
+
+  #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
