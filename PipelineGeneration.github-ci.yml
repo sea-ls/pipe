@@ -2,6 +2,10 @@ name: Create all jobs
 
 on:
   workflow_call:
+    secrets:
+      WORKFLOW_TOKEN:
+        required: true
+
 
 jobs:
   #call-workflow:
