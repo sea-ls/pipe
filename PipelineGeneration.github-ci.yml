@@ -1,26 +1,37 @@
-generate-pipeline:
-  stage: generate-pipeline
-  image: ${DOCKER_REPO_URL}ucso-docker/docker20
-  script:
-    - jsonnet -S --ext-str branch="${CI_COMMIT_BRANCH}" --ext-str need_bkp="${NEED_BKP}" gitlab-ci.jsonnet > generated-config.yml
-  artifacts:
+name: Create all jobs
+
+on:
+  push:
     paths:
-      - generated-config.yml
-    expire_in: 1d
+      - '.github/**'
+      - '!.github/workflows/generated-config.yml'
 
-process-pipeline:
-  stage: process-pipeline
-  variables:
-    SERVICES: $CHANGED_SERVICES
-    NEED_BKP: ${NEED_BKP}
-  needs:
-    - generate-pipeline
-  trigger:
-    include:
-      - artifact: generated-config.yml
-        job: generate-pipeline
-    strategy: depend
-
-
-
-  #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
+jobs:
+  #call-workflow:
+  #  strategy:
+  #    matrix:
+  #      services: [ {SERVICE_NAME: "docker-25", DEPENDS_ON: "docker--25" } ]
+  #  uses: ./.github/workflows/githubci.yml
+  #  secrets: inherit
+  #  with:
+  #    SERVICE_NAME: ${{ matrix.services.SERVICE_NAME }}
+  #    DEPENDS_ON: ${{ matrix.services.DEPENDS_ON }}
+  create-workflow:
+    runs-on:
+      - self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+      - run: jsonnet -S .github/workflows/github-ci.jsonnet > .github/workflows/generated-config.yml
+      #- uses: ./.github/workflows/a.yml@main
+      - name: GIT commit and push all changed files
+        env:
+          CI_COMMIT_MESSAGE: Create workflow from jsonnet
+          CI_COMMIT_AUTHOR: GitHub Runner - RUNNER_NAME
+        run: |
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "osagrigoriy@mail.ru"
+          git add .github/workflows/generated-config.yml
+          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}" && 
+          git push || echo "No changes to commit"
