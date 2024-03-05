@@ -1,10 +1,7 @@
 name: Create all jobs
 
 on:
-  push:
-    paths:
-      - '.github/**'
-      - '!.github/workflows/generated-config.yml'
+  workflow_call:
 
 jobs:
   #call-workflow:
