@@ -1,4 +1,4 @@
-name: Create all jobs
+name: Create all jobs pipe
 
 on:
   workflow_call:
