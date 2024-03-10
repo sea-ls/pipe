@@ -2,10 +2,6 @@ name: Create all jobs pipe
 
 on:
   workflow_call:
-    inputs:
-      GITHUB_REF_NAME:
-        required: true
-        type: string
     secrets:
       WORKFLOW_TOKEN:
         required: true
@@ -28,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.WORKFLOW_TOKEN }}
-      - run: jsonnet -S --ext-str branch="${{ inputs.GITHUB_REF_NAME }}" .github/workflows/github-ci.jsonnet > .github/workflows/generated-config.yml
+      - run: jsonnet -S .github/workflows/github-ci.jsonnet > .github/workflows/generated-config.yml
       #- uses: ./.github/workflows/a.yml@main
       - name: GIT commit and push all changed files
         env:
